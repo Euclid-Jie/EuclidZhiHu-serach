@@ -2,6 +2,7 @@
 # @Time    : 2022/11/29 9:58
 # @Author  : Euclid-Jie
 # @File    : AnswerSearch.py
+import re
 from bs4 import BeautifulSoup
 import pymongo
 from selenium import webdriver
@@ -92,7 +93,7 @@ if __name__ == '__main__':
         answerList = driver.find_elements(By.CLASS_NAME, 'List-item')
 
         # 连接数据库并写入
-        mycol = MongoClient("ZhiHu", '11月知乎舆情')
+        mycol = MongoClient("ZhiHu", '12月知乎舆情')
         for answer in answerList:
             try:
                 mycol.insert_one(GetDataFromAnswer(answer, keyword))
