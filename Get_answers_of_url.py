@@ -4,6 +4,8 @@
 # @File    : Get_answers_of_url.py
 import time
 
+import pandas as pd
+import pymongo
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
@@ -110,8 +112,48 @@ class Get_answers_of_url(Get_answers_of_question):
         self.GetActionDetails()
 
 
+def MongoClient(DBName, collectionName):
+    """
+    :param DBName: mongoDB dataBase's name
+    :param collectionName: mongoDB dataBase's collection's name
+    :return: collection
+    """
+    # client to mongodb at default host
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient[DBName]
+    mycol = mydb[collectionName]
+    return mycol
+
+
+def read_mongo(DBName, collectionName, query=None, no_id=True):
+    """
+    Read from Mongo and Store into DataFrame
+    :param DBName: mongoDB dataBase's name
+    :param collectionName: mongoDB dataBase's collection's name
+    :param query: a selection for data
+    :param no_id: do not write _id column to data
+    :return: pd.DataFrame
+    """
+    # Connect to MongoDB
+    if query is None:
+        query = {}
+    col = MongoClient(DBName, collectionName)
+    # Make a query to the specific DB and Collection
+    cursor = col.find(query)
+    # Expand the cursor and construct the DataFrame
+    df = pd.DataFrame(list(cursor))
+    # Delete the _id
+    if no_id and '_id' in df:
+        del df['_id']
+    return df.drop_duplicates()
+
+
 if __name__ == '__main__':
     demo = Get_answers_of_url()
-    demo.collectionName = 'Test'
-    url = 'https://www.zhihu.com/search?q=%E5%A6%82%E4%BD%95%E8%AF%84%E4%BB%B7%E5%BC%A0%E9%A2%82%E6%96%87&type=content&utm_content=search_preset&time_interval=a_week'
+    demo.collectionName = '北京师范大学测试'
+    url = 'https://www.zhihu.com/search?q=%E5%8C%97%E4%BA%AC%E5%B8%88%E8%8C%83%E5%A4%A7%E5%AD%A6&type=content&vertical=answer&time_interval=a_month'
+    demo.size = 20
     demo.main(url)
+
+    # write data to a csv file
+    read_mongo("ZhiHu", "北京师范大学测试").to_csv("Test.csv", index=False, encoding='utf_8_sig')
