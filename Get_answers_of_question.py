@@ -23,10 +23,6 @@ class Get_answers_of_question:
         options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
         self.driver = webdriver.Chrome(options=options)
 
-        # pages rolling setting
-        self.init = 0
-        self.size = 2  # the huge size is meaning more answer
-
     def GetDataFromAnswer(self, soup):
         # 个人信息部分
         info = soup.find('div', 'AuthorInfo')
@@ -50,19 +46,45 @@ class Get_answers_of_question:
 
         return mydict
 
+    def autoRolling(self, times=None):
+        print(">> 自动翻页中......")
+        if times:
+            for i in range(times):
+                self.driver.execute_script("window.scrollBy(0,-1000)")
+                time.sleep(0.5)
+                self.driver.execute_script("document.documentElement.scrollTop=1000000")
+        else:
+            init = 0
+            total_answer = self.driver.find_element(By.CLASS_NAME, "List-headerText").text.split(' ')[0]
+            total_answer = int(total_answer.replace(",",""))
+            exit_answer = len(self.driver.find_elements(By.CLASS_NAME, 'List-item'))
+            with tqdm(total=total_answer, desc='进度条') as pbar:
+                pbar.update(exit_answer)
+                while True:
+                    self.driver.execute_script("window.scrollBy(0,-1000)")
+                    self.driver.execute_script("document.documentElement.scrollTop=1000000")
+                    time.sleep(0.2)
+                    if len(self.driver.find_elements(By.LINK_TEXT, "写回答")) == 3:
+                        break
+                    if init % 5 == 0:
+                        new_exit_answer = len(self.driver.find_elements(By.CLASS_NAME, 'List-item'))
+                        pbar.update(new_exit_answer - exit_answer)
+                        exit_answer = new_exit_answer
+                    init += 1
     def GetAnswerList(self):
         # 跳转指定关键词回答网页, 一个月, 需要手动滚动
         self.driver.get('https://www.zhihu.com/question/{}'.format(self.question_id))
-
-        print(">> 自动翻页中......")
-        pbar = tqdm(total=self.size)
-        init = 0
-        while init <= self.size:
-            pbar.set_description("page:{}".format(init))  # 进度条左边显示信息
-            self.driver.execute_script("document.documentElement.scrollTop={}".format(init * 10000))
-            time.sleep(0.5)
-            pbar.update(1)
-            init += 1
+        while True:
+            msg = input(">> 请手动翻页，完成后键入 y ,如需查看当前页面条数，键入 n, 如需自动翻页，键入整数 n, 如需托管翻页，键入 a \n")
+            if msg == "y":
+                break
+            elif msg == "n":
+                print("当前页面条数为:{}".format(len(self.driver.find_elements(By.CLASS_NAME, 'List-item'))))
+            elif msg == "a":
+                self.autoRolling()
+                break
+            else:
+                self.autoRolling(int(msg))
 
     def MongoClient(self, DBName, collectionName):
         # 连接数据库
@@ -75,15 +97,17 @@ class Get_answers_of_question:
         for id in tqdm(self.mycol.distinct("_id")):
             action = self.mycol.find_one({'_id': id})['action']
             try:
-                p = re.compile('(?<=赞同\D)[\d]+(?=\D)')  # #re#表示正则表达式
+                p = re.compile('(?<=赞同\D)[\d\.]+(?=\D)')  # #re#表示正则表达式
                 Agree = p.findall(action)[0]  # text_raw表示原始字符串
+                if "万" in action:
+                    Agree = str(int(float(Agree) * 10000))
                 self.mycol.update_one({'_id': id}, {"$set": {'Agree': Agree}})
             except IndexError:
                 pass
 
             try:
-                p = re.compile('\d+(?=\D条评论)')  # #re#表示正则表达式
-                comment = p.findall(action)[0]  # text_raw表示原始字符串
+                p = re.compile('(?<=\D)[\d,]+(?=\D条评论)')  # #re#表示正则表达式
+                comment = p.findall(action)[0].replace(',', '')  # text_raw表示原始字符串
                 self.mycol.update_one({'_id': id}, {"$set": {'comment': comment}})
             except IndexError:
                 pass
@@ -117,5 +141,9 @@ class Get_answers_of_question:
 
 
 if __name__ == '__main__':
-    question_id_list = ['22636295', '291200054']
+    print("请输入question id")
+    answer_id = str(input())
+    question_id_list = [answer_id]
+
+    # question_id_list = ['22636295', '291200054']
     Get_answers_of_question().main(question_id_list)
