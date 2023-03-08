@@ -4,6 +4,7 @@
 # @File    : Get_comments_of_answer.py
 import json
 import time
+import pandas as pd
 import pymongo
 import requests
 from tqdm import tqdm
@@ -39,7 +40,7 @@ class Get_comments_of_answer:
         self.proxies = None
         self.header = header
         self.answer_id = answer_id
-        self.collectionName = "Comments_" + answer_id
+        self.collectionName = "Comments_" + str(int(answer_id))
         self.url = None
 
     def get_data_json_form_url(self):
@@ -87,7 +88,7 @@ class Get_comments_of_answer:
 
     def main(self):
         self.MongoClient()
-        self.url = 'https://www.zhihu.com/api/v4/comment_v5/answers/{}/root_comment?order_by=score&limit=40&offset'.format(self.answer_id)
+        self.url = 'https://www.zhihu.com/api/v4/comment_v5/answers/{}/root_comment?order_by=score&limit=40&offset'.format(int(answer_id))
         total_pages = self.get_data_json_form_url()['paging']['totals']
         with tqdm(range(0, int(total_pages / 20) + 1)) as self.t:
             for page in self.t:
@@ -99,8 +100,8 @@ class Get_comments_of_answer:
                     self.mycol.insert_one(data_json)
                     self.t.set_postfix({"状态": "已写入comments:{}".format(data_json['id'])})
                     # if comments have child_comment, get child_comment
-                    if data_json['child_comment_count'] > 0:
-                        self.get_child_comment(data_json)
+                    # if data_json['child_comment_count'] > 0:
+                    #     self.get_child_comment(data_json)
                 self.url = data['paging']['next']
 
 
@@ -109,8 +110,9 @@ if __name__ == '__main__':
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
     }
     # question_376738227: ['2291037475', '2666925246', '2764000004', '1715806477', '2743611338']
-    question_315914320: ['948633721', '779651349', '1889296546', '1006650691', '1280485524', '903387921', '1280709300', '829298544']
-    for answer_id in question_315914320:
+    # question_315914320 = ['948633721', '779651349', '1889296546', '1006650691', '1280485524', '903387921', '1280709300', '829298544']
+    answer_df = pd.read_csv('topic_21289642.csv（120）.csv')
+    for answer_id in answer_df['answer_id']:
         demo = Get_comments_of_answer(header, answer_id)
-        demo.collectionName = 'comments_of_question_315914320'
+        demo.collectionName = 'comments_of_topic_21289642'
         demo.main()

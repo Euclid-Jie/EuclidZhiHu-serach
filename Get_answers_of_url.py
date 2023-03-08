@@ -3,13 +3,11 @@
 # @Author  : Euclid-Jie
 # @File    : Get_answers_of_url.py
 import time
-
 import pandas as pd
 import pymongo
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
-
 from Get_answers_of_question import Get_answers_of_question
 
 
@@ -36,15 +34,17 @@ class Get_answers_of_url(Get_answers_of_question):
         self.driver.get(self.url)
         print("当前问题为：{}".format(self.driver.title))
 
-        print(">> 自动翻页中......")
-        pbar = tqdm(total=self.size)
-        init = 0
-        while init <= self.size:
-            pbar.set_description("page:{}".format(init))  # 进度条左边显示信息
-            self.driver.execute_script("document.documentElement.scrollTop={}".format(init * 10000))
-            time.sleep(0.5)
-            pbar.update(1)
-            init += 1
+        # print(">> 自动翻页中......")
+        # pbar = tqdm(total=self.size)
+        # init = 0
+        # while init <= self.size:
+        #     pbar.set_description("page:{}".format(init))  # 进度条左边显示信息
+        #     self.driver.execute_script("document.documentElement.scrollTop={}".format(init * 10000))
+        #     time.sleep(0.5)
+        #     pbar.update(1)
+        #     init += 1
+        print(">> 请手动翻页，完成后键入 y ")
+        input()
 
     def GetDataFromAnswer(self, Answer):
         # 是否需要展开，如果是，则点击展开
@@ -149,11 +149,17 @@ def read_mongo(DBName, collectionName, query=None, no_id=True):
 
 
 if __name__ == '__main__':
-    demo = Get_answers_of_url()
-    demo.collectionName = '北京师范大学测试'
-    url = 'https://www.zhihu.com/search?q=%E5%8C%97%E4%BA%AC%E5%B8%88%E8%8C%83%E5%A4%A7%E5%AD%A6&type=content&vertical=answer&time_interval=a_month'
-    demo.size = 20
-    demo.main(url)
+    keyList = ['北师大', '北京师范大学', '北京师范大学统计学院', 'BNU', '北师', '北京师范大学珠海校区']
+    for key in keyList:
 
-    # write data to a csv file
-    read_mongo("ZhiHu", "北京师范大学测试").to_csv("Test.csv", index=False, encoding='utf_8_sig')
+        # get each key's answers
+        # demo = Get_answers_of_url()
+        # demo.collectionName = key
+        # url = 'https://www.zhihu.com/search?q={}&time_interval=a_month&type=content&utm_content=search_hot&vertical=answer'.format(key)
+        # demo.size = 30
+        # demo.main(url)
+
+        # write data to a csv file
+        df = read_mongo("ZhiHu", key)
+        df = df[df['least_datetime'].str.contains('2023-02-')]
+        df.to_csv(r'outData\ZhiHu-2023-02-{}.csv'.format(key), index=False, encoding='utf-8-sig')
