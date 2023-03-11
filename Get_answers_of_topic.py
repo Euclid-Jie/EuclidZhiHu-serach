@@ -4,7 +4,7 @@
 # @File    : Get_answers_of_topic.py
 import json
 import time
-
+from EuclidDataTools import *
 import requests
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
@@ -14,11 +14,12 @@ from Get_answers_of_question import Get_answers_of_question
 
 
 class Get_answers_of_topic(Get_answers_of_question):
-    def __init__(self, topic_id, proxies=None, collectionName=None):
+    def __init__(self, topic_id, proxies=None, collectionName=None, mongo=False):
         # super init
         super().__init__()
 
         # para init
+        self.mongo = mongo
         self.topic_id = topic_id
         self.proxies = proxies
 
@@ -82,7 +83,10 @@ class Get_answers_of_topic(Get_answers_of_question):
 
         # 连接数据库并写入
         print("\n>> 写入数据......")
-        self.mycol = self.MongoClient("ZhiHu", self.collectionName)
+        if self.mongo:
+            self.mycol = self.MongoClient("ZhiHu", self.collectionName)
+        else:
+            self.mycol = CsvClient(subFolder='outData', FileName=self.collectionName)
         with tqdm(answerList) as self.t:
             for answer in self.t:
                 try:

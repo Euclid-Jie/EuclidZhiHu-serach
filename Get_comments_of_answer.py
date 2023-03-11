@@ -8,6 +8,7 @@ import pandas as pd
 import pymongo
 import requests
 from tqdm import tqdm
+from EuclidDataTools import *
 
 
 class Get_comments_of_answer:
@@ -35,7 +36,8 @@ class Get_comments_of_answer:
     What is suggested is that time.sleep() for item answer
     """
 
-    def __init__(self, header, answer_id):
+    def __init__(self, header, answer_id, mongo=False):
+        self.mongo = mongo
         self.mycol = None
         self.proxies = None
         self.header = header
@@ -87,7 +89,10 @@ class Get_comments_of_answer:
         self.mycol = mydb[self.collectionName]  # 集合（表）
 
     def main(self):
-        self.MongoClient()
+        if self.mongo:
+            self.MongoClient()
+        else:
+            self.mycol = CsvClient(subFolder='outData', FileName=self.collectionName)
         self.url = 'https://www.zhihu.com/api/v4/comment_v5/answers/{}/root_comment?order_by=score&limit=40&offset'.format(int(answer_id))
         total_pages = self.get_data_json_form_url()['paging']['totals']
         with tqdm(range(0, int(total_pages / 20) + 1)) as self.t:

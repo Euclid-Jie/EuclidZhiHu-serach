@@ -9,11 +9,13 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
 from Get_answers_of_question import Get_answers_of_question
+from EuclidDataTools import *
 
 
 class Get_answers_of_url(Get_answers_of_question):
-    def __init__(self):
+    def __init__(self, mongo=False):
         super().__init__()
+        self.mongo = mongo
         self.url = None
         self.collectionName = None
 
@@ -97,7 +99,10 @@ class Get_answers_of_url(Get_answers_of_question):
 
         # 连接数据库并写入
         print("\n>> 写入数据......")
-        self.mycol = self.MongoClient("ZhiHu", self.collectionName)
+        if self.mongo:
+            self.mycol = self.MongoClient("ZhiHu", self.collectionName)
+        else:
+            self.mycol = CsvClient(subFolder='outData', FileName=self.collectionName)
         with tqdm(answerList) as self.t:
             for answer in self.t:
                 try:
