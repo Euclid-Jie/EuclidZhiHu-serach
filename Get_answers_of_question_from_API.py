@@ -140,5 +140,6 @@ if __name__ == '__main__':
     # question_id_list = question_df[question_df.zhuanlna == False]['question_id'].to_list()
     # question_id_list = [str(int(question_id)) for question_id in question_id_list]
     demo = Get_answers_of_question_from_API(MongoDB=False)
+    # demo.collectionName = 'demoName'
     # TODO 运行前请更新baseUrl.txt
     demo.main_get(question_id_list)

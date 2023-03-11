@@ -1,14 +1,36 @@
-因为所在部门有舆情分析项目，所以需要一个知乎数据采集工具。但是已有的工具多是基于知乎的API，据我所知知乎已经关停了API，所以自己写了一份知乎数据采集代码，目前的略显粗糙，将慢慢补充。
-
 ## 前置条件
 
-- 会使用MongoDB数据库（后续将更新Pandas存储方式）
+- 会使用MongoDB数据库（已更新Pandas存储方式）
 - 会使用selenium接管指定端口的浏览器，可参考[这篇](https://blog.csdn.net/weixin_45081575/article/details/126389273)文章
 
 # 目前已有功能
 ## 获取指定问题下的回答
 
-使用`Get_answers_of_question.py` 
+`Get_answers_of_question_from_API`
+
+- 更新`base_url`
+
+  1、打开知乎的[某个](https://www.zhihu.com/question/266068728)指定问题
+
+  2、打开浏览器开发工具（F12打开）
+
+  3、刷新页面，往下滚动网页，找到`feed`的请求，如下图所示
+  
+  4、将末尾的数字更新至baseUrl.txt，即完成更新
+
+![image-20230311122156648](https://euclid-picgo.oss-cn-shenzhen.aliyuncs.com/image/202303111221843.png)
+
+- 参数修改
+
+```python
+question_id_list = ['22636295', '291200054'] # 问题id，以列表形式传入
+question_id_list = ['22636295']  # 单个问题也需要写成这样
+demo = Get_answers_of_question_from_API(MongoDB=False)  # 如需写入Mongo请设置Ture
+# demo.collectionName = 'demoName'  # 如需设置文件名，请取消注释，默认文件名为qustion_id_API
+demo.main_get(question_id_list)  # 运行前，请打9222端口的托管浏览器，并登录知乎
+```
+
+[旧版本]使用`Get_answers_of_question.py` 
 
 - 调整参数
 
@@ -21,6 +43,8 @@
   ```python
   Get_answers_of_question().main(question_id_list)  # 直接传入question_id_list调用
   ```
+
+
 
 ## 获取指定条件下的回答或专栏
 

@@ -66,8 +66,8 @@ class Get_answers_of_url(Get_answers_of_question):
             answer_id = None
         else:
             zhuanlan = False
-            question_id = answer_url.split("/")[2]
-            answer_id = answer_url.split("/")[4]
+            question_id = answer_url.split("/")[-3]
+            answer_id = answer_url.split("/")[-1]
 
         action = soup.find('div', 'ContentItem-actions').text.replace(u'\u200b', ' ')
         answerRaw = soup.find('div', 'RichContent-inner').get_text().replace(u'\u200b', ' ')
@@ -149,17 +149,18 @@ def read_mongo(DBName, collectionName, query=None, no_id=True):
 
 
 if __name__ == '__main__':
-    keyList = ['北师大', '北京师范大学', '北京师范大学统计学院', 'BNU', '北师', '北京师范大学珠海校区']
+    # keyList = ['北师大', '北京师范大学', '北京师范大学统计学院', 'BNU', '北师', '北京师范大学珠海校区']
+    keyList = ['应用统计专硕就业']
     for key in keyList:
 
         # get each key's answers
-        # demo = Get_answers_of_url()
-        # demo.collectionName = key
-        # url = 'https://www.zhihu.com/search?q={}&time_interval=a_month&type=content&utm_content=search_hot&vertical=answer'.format(key)
-        # demo.size = 30
-        # demo.main(url)
+        demo = Get_answers_of_url()
+        demo.collectionName = key
+        url = 'https://www.zhihu.com/search?q={}&time_interval=a_month&type=content&utm_content=search_hot&vertical=answer'.format(key)
+        demo.size = 30
+        demo.main(url)
 
         # write data to a csv file
-        df = read_mongo("ZhiHu", key)
-        df = df[df['least_datetime'].str.contains('2023-02-')]
-        df.to_csv(r'outData\ZhiHu-2023-02-{}.csv'.format(key), index=False, encoding='utf-8-sig')
+        # df = read_mongo("ZhiHu", key)
+        # df = df[df['least_datetime'].str.contains('2023-02-')]
+        # df.to_csv(r'outData\ZhiHu-2023-02-{}.csv'.format(key), index=False, encoding='utf-8-sig')

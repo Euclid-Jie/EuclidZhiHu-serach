@@ -36,7 +36,7 @@ class Get_comments_of_answer:
     """
 
     def __init__(self, header, answer_id):
-
+        self.mycol = None
         self.proxies = None
         self.header = header
         self.answer_id = answer_id
