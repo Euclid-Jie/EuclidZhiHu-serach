@@ -1,6 +1,6 @@
 ## 前置条件
 
-- 会使用MongoDB数据库（已更新Pandas存储方式）
+- 会使用MongoDB数据库（已更新excel(csv)存储方式）
 - 会使用selenium接管指定端口的浏览器，可参考[这篇](https://blog.csdn.net/weixin_45081575/article/details/126389273)文章
 
 # 目前已有功能
