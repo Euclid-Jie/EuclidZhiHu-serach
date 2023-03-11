@@ -12,11 +12,13 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
+from EuclidDataTools import *
 
 
 class Get_answers_of_question_from_API:
-    def __init__(self, proxies=None):
+    def __init__(self, proxies=None, MongoDB=True):
         # para init
+        self.MongoDB = MongoDB
         self.mycol = None
         self.collectionName = None
         self.page = None
@@ -74,8 +76,11 @@ class Get_answers_of_question_from_API:
             # collection name setting
             if not self.collectionName:
                 self.collectionName = self.questions_id + '_API'
-            # mongo init
-            self.MongoClient()
+            # mongo or csv init
+            if self.MongoDB:
+                self.MongoClient()
+            else:
+                self.mycol = CsvClient(subFolder='outData', FileName=self.collectionName)
             # get total answer num
             self.driver.get('https://www.zhihu.com/question/{}'.format(self.questions_id))
             total_answer = self.driver.find_element(By.CLASS_NAME, "List-headerText").text.split(' ')[0]
@@ -128,12 +133,12 @@ if __name__ == '__main__':
     # answer_id = str(input())
     # question_id_list = [answer_id]
 
-    # question_id_list = ['22636295', '291200054']
+    question_id_list = ['22636295', '291200054']
 
-    question_df = pd.read_csv('应用统计专硕就业.csv')
-    question_id_list = question_df[question_df.zhuanlna == False]['question_id'].to_list()
-    question_id_list = [str(int(question_id)) for question_id in question_id_list]
-    demo = Get_answers_of_question_from_API()
-    demo.collectionName = '应用统计专硕就业_API'
+    # question_id_list from pd.DataFrame
+    # question_df = pd.read_csv('应用统计专硕就业.csv')
+    # question_id_list = question_df[question_df.zhuanlna == False]['question_id'].to_list()
+    # question_id_list = [str(int(question_id)) for question_id in question_id_list]
+    demo = Get_answers_of_question_from_API(MongoDB=False)
     # TODO 运行前请更新baseUrl.txt
     demo.main_get(question_id_list)
